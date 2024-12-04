@@ -17,13 +17,15 @@ func main() {
 	var sum atomic.Int64 // по идее мы могли использовать mutex вместо atomic, но так будет быстрее
 
 	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for _, num := range nums {
-			sum.Add(num * num)
-		}
-	}()
+
+	for _, num := range nums {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			sqr := num * num
+			sum.Add(sqr)
+		}()
+	}
 	wg.Wait()
 	fmt.Println(sum.Load())
 }
