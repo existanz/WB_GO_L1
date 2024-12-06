@@ -8,11 +8,13 @@ package main
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 )
 
+// проще было бы `type Counter atomic.Uint64`
+// но тогда решение не соответствовало условию "реализовать структуру-счетчик"
 type Counter struct {
-	v  int
-	mu sync.Mutex
+	av atomic.Uint64
 }
 
 func New() Counter {
@@ -20,13 +22,11 @@ func New() Counter {
 }
 
 func (c *Counter) Inc() {
-	c.mu.Lock()
-	c.v++
-	c.mu.Unlock()
+	c.av.Add(1)
 }
 
-func (c *Counter) Val() int {
-	return c.v
+func (c *Counter) Val() uint64 {
+	return c.av.Load()
 }
 
 func main() {
