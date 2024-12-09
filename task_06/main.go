@@ -36,15 +36,15 @@ func main() {
 	// чтобы этого избежать можно использовать примитивы синхронизации
 	// 1.2 Mutex
 
-	var f = Flag{flag: new(bool), mu: new(sync.Mutex)}
+	var f = Flag{flag: false, mu: sync.Mutex{}}
 
 	wg.Add(1)
-	go workerWithStruct(wg, f)
+	go workerWithStruct(wg, &f)
 
 	time.Sleep(workingTime)
 
 	f.mu.Lock()
-	*f.flag = true
+	f.flag = true
 	f.mu.Unlock()
 
 	wg.Wait()
@@ -107,8 +107,8 @@ func main() {
 }
 
 type Flag struct {
-	flag *bool
-	mu   *sync.Mutex
+	flag bool
+	mu   sync.Mutex
 }
 
 func workerWithFlag(wg *sync.WaitGroup, flag *bool) {
@@ -121,12 +121,12 @@ func workerWithFlag(wg *sync.WaitGroup, flag *bool) {
 	fmt.Println("Worker with flag stopped")
 }
 
-func workerWithStruct(wg *sync.WaitGroup, f Flag) {
+func workerWithStruct(wg *sync.WaitGroup, f *Flag) {
 	defer wg.Done()
 	fmt.Println("Worker with mutex started")
 	for {
 		f.mu.Lock()
-		flag := *f.flag
+		flag := f.flag
 		f.mu.Unlock()
 		if flag {
 			break
