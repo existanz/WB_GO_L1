@@ -9,7 +9,6 @@ func main() {
 	nums := [...]int{2, 4, 6, 8, 10}
 
 	sqrs := make(chan int) // создаём небуферизированный канал
-	defer close(sqrs)      // не забываем закрыть его
 
 	wg := &sync.WaitGroup{} // используем wg для синхронизации
 
@@ -21,10 +20,12 @@ func main() {
 		}()
 	}
 	go func() {
-		for sqr := range sqrs { // range по каналу идёт пока канал не закрыт
-			fmt.Println(sqr)
-		}
+		wg.Wait()
+		close(sqrs)
 	}()
-	wg.Wait()
+
+	for sqr := range sqrs { // range по каналу идёт пока канал не закрыт
+		fmt.Println(sqr)
+	}
 
 }
