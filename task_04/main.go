@@ -13,6 +13,7 @@ import (
 	"context"
 	"fmt"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -28,14 +29,21 @@ func main() {
 	t := time.NewTicker(1 * time.Second)
 	defer t.Stop()
 
+	wg := &sync.WaitGroup{}
+
 	for i := range workers {
-		go worker(ctx, i+1, t.C)
+		wg.Add(1)
+		go worker(ctx, wg, i+1, t.C)
 	}
 
 	<-ctx.Done()
+	wg.Wait()
 }
 
-func worker(ctx context.Context, workerID int, ch <-chan time.Time) {
+func worker(ctx context.Context, wg *sync.WaitGroup, workerID int, ch <-chan time.Time) {
+	defer wg.Done()
+
+	fmt.Printf("Worker %d started\n", workerID)
 	for {
 		select {
 		case <-ctx.Done():
